@@ -7,9 +7,10 @@ import java.util.Scanner;
 
 public class Game {
 
-    static List<BaseHero> darkSide = new ArrayList<>();
-    static List<BaseHero> whiteSide = new ArrayList<>();
     public static void main(String[] args) {
+        
+        List<BaseHero> darkSide = new ArrayList<>();
+        List<BaseHero> whiteSide = new ArrayList<>();
 
         darkSide.add(new Peasant());
         darkSide.add(new Robber());
@@ -74,9 +75,13 @@ public class Game {
                     System.out.println("Step: " + Integer.toString(step++));
                     System.out.println("--------------------------------------------");
                     System.out.println("Dark side\t\t\t\t\t\t\tWhite side");
+                    for (BaseHero hero : whiteSide) {
+                        hero.step(whiteSide);
+                    }
+                    for (BaseHero hero : darkSide) {
+                        hero.step(darkSide);
+                    }
                     for (i = 0; i < darkSide.size(); i++) {
-                        darkSide.get(i).step(darkSide);
-                        whiteSide.get(i).step(whiteSide);
                         if (darkSide.get(i).indicateState().length() > 32) {
                             System.out.println(darkSide.get(i).indicateState() + "\t:\t" + whiteSide.get(i).indicateState());
                         } else {
