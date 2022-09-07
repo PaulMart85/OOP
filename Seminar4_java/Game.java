@@ -7,18 +7,31 @@ import java.util.Scanner;
 
 public class Game {
 
-    public static void main(String[] args) {
-        
-        List<BaseHero> darkSide = new ArrayList<>();
-        List<BaseHero> whiteSide = new ArrayList<>();
+    protected static final int heroesCount;  // количество игроков в команде
 
+    protected static final List<BaseHero> darkSide; // команда черных
+    protected static final List<BaseHero> whiteSide; // команда белых
+
+    static {
+        heroesCount = 10;
+        darkSide = new ArrayList<>(heroesCount);
+        whiteSide = new ArrayList<>(heroesCount);
+    }
+
+    public static void main(String[] args) {
+
+        // наполнение команд
         darkSide.add(new Peasant());
+        darkSide.add(new Arbalester());
+        darkSide.add(new Magician());
+        darkSide.add(new Monk());
+        darkSide.add(new Spearman());
         darkSide.add(new Robber());
         darkSide.add(new Sniper());
 
         Random rnd = new Random();
-        for (int i = 0; i < 5; i++) {
-            switch (rnd.nextInt(4)){
+        for (int i = 0; i < heroesCount-7; i++) {
+            switch (rnd.nextInt(heroesCount-6)){
                 case 0:
                     darkSide.add(new Peasant());
                     break;
@@ -29,71 +42,122 @@ public class Game {
                     darkSide.add(new Sniper());
                     break;
                 default:
-                    darkSide.add(new Magician());
+                    darkSide.add(new Monk());
             }
         }
 
-        whiteSide.add(new Monk());
         whiteSide.add(new Arbalester());
+        whiteSide.add(new Magician());
+        whiteSide.add(new Peasant());
+        whiteSide.add(new Sniper());
+        whiteSide.add(new Monk());
+        whiteSide.add(new Robber());
         whiteSide.add(new Spearman());
 
-        for (int i = 0; i < 5; i++) {
-            switch (rnd.nextInt(4)){
+        for (int i = 0; i < heroesCount-7; i++) {
+            switch (rnd.nextInt(heroesCount-6)){
                 case 0:
-                    whiteSide.add(new Monk());
+                    whiteSide.add(new Peasant());
                     break;
                 case 1:
-                    whiteSide.add(new Arbalester());
+                    whiteSide.add(new Robber());
                     break;
                 case 2:
-                    whiteSide.add(new Spearman());
+                    whiteSide.add(new Sniper());
                     break;
                 default:
-                    whiteSide.add(new Magician());
-            }
-        }
-        
-        System.out.println("First step");
-        System.out.println("--------------------------------------------");
-        System.out.println("Dark side\t\t\t\t\t\t\tWhite side");
-        for (int i = 0; i < darkSide.size(); i++) {
-            if (darkSide.get(i).indicateState().length() > 32) {
-                System.out.println(darkSide.get(i).indicateState() + "\t:\t" + whiteSide.get(i).indicateState());
-            } else {
-                System.out.println(darkSide.get(i).indicateState() + "\t\t:\t" + whiteSide.get(i).indicateState());
+                    whiteSide.add(new Monk());
             }
         }
 
-        System.out.println("Enter 'N' for next step;  Enter 'Q' for exit");
+        // расстановка сил
+        int posX = 0;
+        for (BaseHero hero : darkSide) {
+            hero.position = new Vector2(posX++, 0);
+        }
+        posX = 0;
+        for (BaseHero hero : whiteSide) {
+            hero.position = new Vector2(posX++, heroesCount-1);
+        }
 
-        int step = 2, i;
+        String ss;
+        System.out.println("\nInitial alignment of forces");
+        System.out.println("-----------------------------------------------------------------------------------------");
+        System.out.println("\tDark side\t\t\t\t\t\tWhite side");
+        for (int i = 0; i < heroesCount; i++) {
+                ss = darkSide.get(i).indicateState();
+                System.out.print(i + " " + ss); 
+                System.out.print(String.valueOf(" ").repeat(50 - ss.length()));
+                System.out.println(i + " " + whiteSide.get(i).indicateState());
+        }
+
+
+        int step = 1;
+        boolean darkFlag = false, 
+                whiteFlag = false,
+                swap = true;
         try (Scanner in = new Scanner(System.in)) {
+            System.out.println("\nWho moves first?  Enter 'Dark' for darkSide or 'White' for whiteSide");
+            String firstMove;
             while (true) {
-                String input = in.nextLine();
+                firstMove = in.nextLine();
+                if (firstMove.equals("Dark")) {swap = false; break;};
+                if (firstMove.equals("White")) {swap = true; break;};
+            }
+
+            String input = "N";
+            while (true) {
                 if (input.equals("N")) {
-                    System.out.println("Step: " + Integer.toString(step++));
-                    System.out.println("--------------------------------------------");
-                    System.out.println("Dark side\t\t\t\t\t\t\tWhite side");
-                    for (BaseHero hero : whiteSide) {
-                        hero.step(whiteSide, darkSide);
+                    System.out.printf("Step: %s\t\t%sSide move\n", Integer.toString(step++), firstMove);
+                    System.out.println("-----------------------------------------------------------------------------------------");
+                    System.out.println("\tDark side\t\t\t\t\t\tWhite side");
+
+                    if (swap) { // посменные ходы
+                        // ход белых
+                        whiteSide.forEach(hero -> hero.step());
+                        // ход черных
+                        darkSide.forEach(hero -> hero.step());
+                        swap = false;
+                        firstMove = "Dark";
+                    } 
+                    else {
+                        // ход черных
+                        darkSide.forEach(hero -> hero.step());
+                        // ход белых
+                        whiteSide.forEach(hero -> hero.step());
+                        swap = true;
+                        firstMove = "White";
                     }
-                    for (BaseHero hero : darkSide) {
-                        hero.step(darkSide, whiteSide);
+
+                    for (int i = 0; i < heroesCount; i++) {
+                        ss = darkSide.get(i).indicateState();
+                        System.out.print(i + " " + ss); 
+                        System.out.print(String.valueOf(" ").repeat(50 - ss.length()));
+                        System.out.println(i + " " + whiteSide.get(i).indicateState());
+                        if (darkSide.get(i).status()) darkFlag = true; 
+                        if (whiteSide.get(i).status()) whiteFlag = true;
                     }
-                    for (i = 0; i < darkSide.size(); i++) {
-                        if (darkSide.get(i).indicateState().length() > 32) {
-                            System.out.println(darkSide.get(i).indicateState() + "\t:\t" + whiteSide.get(i).indicateState());
-                        } else {
-                            System.out.println(darkSide.get(i).indicateState() + "\t\t:\t" + whiteSide.get(i).indicateState());
-                        }
+
+                    if (!darkFlag && !whiteFlag) {
+                        System.out.println("\n\t\t\t!!!GAME DRAWN  -  NO SIDES!!!\n");
+                        return;
                     }
+                    if (!darkFlag) {
+                        System.out.println("\n\t\t\t!!! W H I T E   W O N !!!\n");
+                        return;
+                    }
+                    if (!whiteFlag) {
+                        System.out.println("\n\t\t\t!!! D A R K   W O N !!!\n");
+                        return;
+                    }  
                 }
                 if (input.equals("Q")) break;
+                
+                System.out.println("\nEnter 'N' for next step;  Enter 'Q' for exit");
+                input = in.nextLine();
             }
         }
 
-        // маг лечит одного случайного героя из своего лагея, в том числе и себя
-
-        System.out.println("G A M E   O V E R");
+        System.out.println("\n\t\t\tG A M E   O V E R\n");
     }
 }

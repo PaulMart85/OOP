@@ -1,6 +1,5 @@
 package Seminar4_java;
 
-import java.util.List;
 
 public class Sniper extends BaseHero {
     
@@ -13,9 +12,19 @@ public class Sniper extends BaseHero {
         speed = 9;
     }
 
+    /**
+     * Снайпер поражает одного случайного героя из чужого лагеря силой в диапазоне damage.
+     * Удар он наносит ружьем пока у него имеются патроны. С каждым выстрелом количество их
+     * уменьшается на 1. Патроны снайперу доставляют только крестьяне своего лагеря.
+     * Как только патроны заканчиваются, снайпер идет врукопашную и наносит удар с силой 1.
+     */
     @Override
-    public void step(List<BaseHero> side1, List<BaseHero> side2) {
-    
-        
+    public void step() {
+        stepForShooters(this);
+    }
+
+    @Override
+    public boolean status() {
+        return !state.equals("killed");
     }
 }

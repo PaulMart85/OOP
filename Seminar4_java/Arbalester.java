@@ -1,6 +1,5 @@
 package Seminar4_java;
 
-import java.util.List;
 
 public class Arbalester extends BaseHero {
     
@@ -13,11 +12,20 @@ public class Arbalester extends BaseHero {
         speed = 4;
     }
 
+    /**
+     * Арбалетчик поражает одного случайного героя из чужого лагеря силой в диапазоне damage.
+     * Удар он наносит стрельбой пока у него имеются стрелы. С каждым ударом количество выстрелов
+     * уменьшается на 1. Стрелы арбалетчику доставляют только копейщики своего лагеря.
+     * Как только стрелы заканчиваются, арбалетчик идет врукопашную и наносит удар с силой 1.
+     */
     @Override
-    public void step(List<BaseHero> side1, List<BaseHero> side2) {
-    
-        
+    public void step() {
+        stepForShooters(this);
     }
 
+    @Override
+    public boolean status() {
+        return !state.equals("killed");
+    }
 
 }
