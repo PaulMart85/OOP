@@ -210,10 +210,14 @@ public class Game { // реализация однопоточная
      */
     private static void makeAMove() {
 
-        if (whoseMove.equals(WhsMv.RED_SIDE))
+        if (whoseMove.equals(WhsMv.RED_SIDE)) {
             redSide.forEach(BaseHero :: step);
-        else
+            redSide.forEach(BaseHero :: changePosition);
+        }
+        else {
             blueSide.forEach(BaseHero :: step);
+            blueSide.forEach(BaseHero :: changePosition);
+        }
             
     }
 

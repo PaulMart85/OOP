@@ -5,7 +5,11 @@ public interface ActionsInterface {
     
     // void strike(BaseHero hero);
     // void getDamaged(int damagePower);
-    // boolean changePosition();
+
+    /**
+     * Перемещение героя по полю. 
+     */
+     void changePosition();
 
     /**
      * Проверка статуса героя на предмет 'жив-мертв'.

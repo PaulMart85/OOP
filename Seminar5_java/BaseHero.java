@@ -1,11 +1,13 @@
 package Seminar5_java;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.Random;
 
 
 public abstract class BaseHero implements ActionsInterface {
-    protected static int number;
+    protected static int number; // уникальный номер героя
     Random rnd = new Random();
 
     protected String name;
@@ -35,7 +37,7 @@ public abstract class BaseHero implements ActionsInterface {
      * @return String из роль героя, name, исходного health, attack, defence,
      * shot, диапазон силы damage и speed
      */
-    public String getInfo() {
+    protected String getInfo() {
         return String.format("%s: %s  hlth: %d  attk: %d  protect: %d  shot: %d  dmg: %d-%d  speed: %d",
         this.getClass().getSimpleName(), name, health, attack, defence, shot, damage[0], damage[1], speed);
     }
@@ -52,7 +54,7 @@ public abstract class BaseHero implements ActionsInterface {
     /**
      * Общий метод step() для стрелков: Arbalester и Sniper.
      */
-    public void stepForShooters(BaseHero shooter) {
+    protected void stepForShooters(BaseHero shooter) {
 
         if (shooter.currentHealth <= 0) {  // стрелок мертв
             shooter.state = "killed";
@@ -94,7 +96,7 @@ public abstract class BaseHero implements ActionsInterface {
     /**
      * Общий метод step() для доставщиков: Spearman и Peasant.
      */
-    public void stepForDelivers(List<BaseHero> side, BaseHero deliver) {
+    protected void stepForDelivers(List<BaseHero> side, BaseHero deliver) {
 
         int hr = rnd.nextInt(Game.heroesCount);
         BaseHero crntHero = side.get(hr);
@@ -114,23 +116,72 @@ public abstract class BaseHero implements ActionsInterface {
         }
     }
 
-    // Все имена уникальны
     @Override
-    public boolean equals(Object obj) {
-        return name.equals( ((BaseHero) obj).name );
-    }
+    public void changePosition() {
 
+        List<Coordinates> allDir = new ArrayList<>(); // список возможных движений на 1 шаг с учетом диаг
+        allDir.add(new Coordinates(position.x+1, position.y));
+        allDir.add(new Coordinates(position.x-1, position.y));
+        allDir.add(new Coordinates(position.x, position.y+1));
+        allDir.add(new Coordinates(position.x, position.y-1));
+        allDir.add(new Coordinates(position.x+1, position.y+1));
+        allDir.add(new Coordinates(position.x-1, position.y-1));
+        allDir.add(new Coordinates(position.x+1, position.y-1));
+        allDir.add(new Coordinates(position.x-1, position.y+1));
+
+        Coordinates verPos = new Coordinates(0, 0);
+        ListIterator<Coordinates> iter = allDir.listIterator();
+        while(iter.hasNext()) { // исключаем из списка ходы за пределы поля битвы
+            verPos = iter.next();
+            if((verPos.x < 0 || verPos.x >= Game.heroesCount) ||
+            (verPos.y < 0 || verPos.y >= Game.heroesCount)) {
+                allDir.remove(verPos);
+                iter = allDir.listIterator();
+            }
+        }
+    
+        boolean flag = false;
+        verPos = new Coordinates(position.x, position.y);
+        while (!flag) { // ислючаем возможность шагнуть в клетку, где уже стоит герой
+            verPos = allDir.get(rnd.nextInt(allDir.size()));
+
+            flag = true;
+            for (BaseHero hero : Game.blueSide)
+                if (verPos.equals(hero.position)) {
+                    flag = false;
+                    allDir.remove(verPos);
+                    break;
+                }
+        
+            if (flag)
+                for (BaseHero hero : Game.redSide) 
+                    if (verPos.equals(hero.position)) {
+                        flag = false;
+                        allDir.remove(verPos);
+                        break;
+                    }
+            if (allDir.isEmpty()) return; // ходить некуда - стоим на месте
+        }
+
+        Game.battleField[verPos.x][verPos.y] = 
+            new ColoredNumber(Game.battleField[position.x][position.y].number, 
+                              Game.battleField[position.x][position.y].color);
+        Game.battleField[position.x][position.y] = null;
+        position = new Coordinates(verPos.x, verPos.y);
+  
+    }
+    
     /**
      * Расстояние до ближайшего героя вражеского лагеря. 
      * @return Coordinates(x, y): x - номер героя в списке, y - расстояние до него
      */
-    public Coordinates getDistance(){
+    protected Coordinates getDistance(){
         
         double dist = Integer.MAX_VALUE; // расстояние до ближайшего героя
         int toHero = 0; // ближайший по отношению к текущему герой из вражеского лагеря
         int dX, dY;
         double tD;
-
+        
         // определяем лагерь противника
         List<BaseHero> side = Game.redSide;
         if (Game.redSide.contains(this)) {
@@ -149,5 +200,10 @@ public abstract class BaseHero implements ActionsInterface {
 
         return new Coordinates(toHero, (int) Math.round(dist));
     }
-
+    
+    // Все имена уникальны
+    @Override
+    public boolean equals(Object obj) {
+        return name.equals( ((BaseHero) obj).name );
+    }
 }
